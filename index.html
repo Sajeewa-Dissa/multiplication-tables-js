@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Multiplication Tables in a Circle JS</title>
+    <title>Modulo Multiplication Circle JS</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
@@ -306,7 +306,7 @@
     <form action="#" method="post">
         <div>
             <header class="header">
-                <h1>Multiplication Tables in a Circle Using JavaScript</h1>
+                <h1>Modulo Multiplication Circle Using JavaScript</h1>
                 <p>Geometric patterns formed by multiplication in modulo n, expressed by joining points along the circumference of a circle.</p>
             </header>
 
@@ -403,7 +403,7 @@
             var centreY = 300;
             var coords = [];
             var matrix = [];
-            var multiple = 0;
+            var multiple = 1;
             var cumulativeCoordsRPC = 0
             var cumulativeMatrixRPC = 0
             var prevModulo = 0;
@@ -544,7 +544,7 @@
             }
 
             function Stop() {
-                multiple = 0; // reset slider;
+                multiple = 1; // reset slider;
                 clearInterval(intervalId);
                 toggleBut.removeEventListener("click", Stop);
                 toggleBut.addEventListener("click", Start);
