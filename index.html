@@ -95,27 +95,36 @@
                     padding: 1em;
                 }
 
-        #toggleBut {
+        .blueButton {
             height: 40px;
             width: 150px;
             border-style: none;
             border-radius: 8px;
             background-color: #4488DD;
             color: white;
-            font-size: large;
         }
 
-            #toggleBut:hover {
+            .blueButton:hover {
                 background-color: #5599FF;
             }
 
-            #toggleBut:active {
+            .blueButton:active {
                 background-color: #77BBFF;
             }
 
+        #toggleBut {
+            font-size: large;
+        }
+
+        #testBut {
+            height: 30px;
+            width: 120px;
+            margin: 10px;
+        }
+
         .slidecontainer, .radiogroupcontainer {
-            width: 550;
-            max-width: 525;
+            width: 550px;
+            max-width: 525px;
             justify-content: flex-start;
         }
 
@@ -246,9 +255,9 @@
             border-radius: 50%;
         }
 
-        /* On mouse-over, add a grey background color */
+        /* On mouse-over, add a lighter grey background color */
         .radiocontainer:hover input ~ .checkmark {
-            background-color: #666666;
+            background-color: #707070;
         }
 
         /* When the radio button is checked, add a blue background */
@@ -302,7 +311,7 @@
 
     </style>
 </head>
-<body>
+<body onLoad="JavaScript:setOnRefresh();">
     <form action="#" method="post">
         <div>
             <header class="header">
@@ -319,14 +328,14 @@
 
                     <section id="textcontent">
                         <p>
-                            When enumerating the multiplication times tables and showing the results as lines joining along the circumference of a circle, strange and beautiful patterns are formed.
+                            When enumerating the multiplication times tables as lines in a circle, strange and beautiful patterns are formed.
                             For this exercise, we divide a circle's diameter into equi-distant points with the 9 o'clock position representing zero (by convention), and each point clockwise being a unit increment.
-                            For any multiplication table, the result is expressed as a series of lines joining each factor to its product. When we come full circle, we can continue the multiplication
-                            by re-using the points via modulo division. A full explanation of this idea is cited in the YouTube video linked below.
+                            For any times table, the result is expressed as a series of lines joining each factor to its product. When we come full circle, we can continue the multiplication
+                            by re-using the points via modulo division. A full explanation of this idea is cited in the YouTube link below.
                         </p>
                         <p>
                             This page is created in HTML using <strong>inline CSS and JavaScript only</strong> (no external CDNs, libraries or resources are used).
-                            The patterns are drawn on a canvas element, and the page includes simple grid displays.
+                            The patterns are drawn on a canvas element, and the page includes a simple grid display.
                         </p>
                         <p>
                             <span><a href="https://github.com/Sajeewa-Dissa/multiplication-tables-js" target="_blank">GitHub</a> the source code for this project is available here.</span><br />
@@ -338,7 +347,7 @@
                         </div>
                     </section>
                     <div class="buttoncontainer">
-                        <input type="button" id="toggleBut" value="Autoplay" />
+                        <input type="button" id="toggleBut" class="blueButton" value="Autoplay" />
                     </div>
                     <div id="controlgrid">
                         <div>
@@ -369,6 +378,9 @@
                             <input type="range" min="100" max="250" value="250" class="slider" id="myRange3"> <!--initial value 250-->
                         </div>
                     </div>
+                    <!--<p>
+                        <span id="msg"></span>
+                    </p>-->
                 </div>
 
                 <div class="column middleright">
@@ -381,6 +393,9 @@
                     <p></p>
                 </div>
             </div>
+
+
+
             <footer class="footer">
                 <p>&#169;<small> Copyright 2019 Sajeewa Dissanayake</small></p>
             </footer>
@@ -388,9 +403,10 @@
 
         <script>
             //set DOM references for HTML elements
-            var statusmsg = document.getElementById("statusmsg");
-            var msg = document.getElementById("msg");
+            //var counter = 0;
+            //var statusmsg = document.getElementById("msg");
             var ctx = document.getElementById("canvas").getContext("2d");
+            //var alpha = 1.0;                                              //transparency variable for canvas
             var slider1 = document.getElementById("myRange1");
             var slider2 = document.getElementById("myRange2");
             var slider3 = document.getElementById("myRange3");
@@ -399,8 +415,8 @@
             var output3 = document.getElementById("radiusOut");
 
             //define circle centre, radius and other initial values
-            var centreX = 300;
-            var centreY = 300;
+            var centreX = 275;
+            var centreY = 275;
             var coords = [];
             var matrix = [];
             var multiple = 1;
@@ -410,9 +426,12 @@
             var prevRadius = 0;
             var prevMultiplier = 0;
 
+            statusmsg.innerText = "";
+
             output1.innerText = slider1.value;
             output2.innerText = slider2.value;
             output3.innerText = slider3.value;
+
             var initialRadius = slider3.value;
 
             var toggleBut = document.getElementById("toggleBut");
@@ -420,18 +439,19 @@
             toggleBut.addEventListener("click", Start);
 
             slider1.oninput = function () {
+                multiple = Number(this.value);       // save this global variable for autoplay restart.
                 output1.innerText = this.value;
-                drawResults(this.value);
+                drawResults();
             }
 
             slider2.oninput = function () {
                 output2.innerText = this.value;
-                drawResults(this.value);
+                drawResults();
             }
 
             slider3.oninput = function () {
                 output3.innerText = this.value;
-                drawResults(this.value);
+                drawResults();
             }
 
             //draw circle with initial values
@@ -446,6 +466,11 @@
                 ctx.arc(x0, y0, radius, 0, Math.PI * 2, true); // 2 Pi radians is a complete circle (note drawing arc starts from 3 o'clock position but this isn't an issue)
                 ctx.stroke();
                 ctx.closePath();
+            }
+
+            //reset slider and circle on page refresh
+            function setOnRefresh() {
+                resetControlsToStart();
             }
 
             function drawResults() {
@@ -474,8 +499,7 @@
                 }
 
                 //do drawing on canvas
-                drawCircle(centreX, centreY, radiusVal);
-                drawPattern();
+                doDrawOnCanvas(radiusVal);
 
                 //store current slider values as previous values ready for next time.
                 prevRadius = radiusVal;
@@ -483,12 +507,17 @@
                 prevMultiplier = multiplierVal;
             }
 
+            function doDrawOnCanvas(radius) {           //we can call this function to draw circle with current global array settings etc.
+                drawCircle(centreX, centreY, radius);
+                drawPattern();
+            }
+
             function createCoords(x0, y0, radius, modulo) {
                 // coordinates will be calculated from the 9 0'clock position as being the start (so we move 180 degrees around the circle by reflecting each point about the centre)
                 coords = [];                        // reset array to hold circular coordinates;
                 for (var i = 0; i < modulo; i++) {
-                    var x = Math.abs((x0 + radius * Math.cos(2 * Math.PI * i / modulo) - 2 * x0).toFixed(2));
-                    var y = Math.abs((y0 + radius * Math.sin(2 * Math.PI * i / modulo) - 2 * y0).toFixed(2));
+                    var x = Math.abs((x0 + radius * Math.cos(2 * Math.PI * i / modulo) - 2 * x0).toFixed(2)); //returns string x coord
+                    var y = Math.abs((y0 + radius * Math.sin(2 * Math.PI * i / modulo) - 2 * y0).toFixed(2)); //returns string y coord
                     coords.push([x, y]);
                 }
             }
@@ -523,28 +552,65 @@
                 ctx.closePath();
             }
 
-            function playMultiplierSlider() {
-                multiple += 1;
+            //TODO allow a fadeout animation effect where the pattern is removed
+            //function fadeOut() {
 
-                if (multiple > 100) {  /*we have reached the end of autoplay.*/
+            //    //make sure alpha is to 2 dp.
+            //    //alpha = parseFloat(Math.round(alpha * 100) / 100).toFixed(2);
+            //    counter += 1;
+            //    statusmsg.innerHTML = counter.toString() + " " + alpha.toString();
+
+            //    if (alpha <= 0) {
+            //        statusmsg.innerHTML += "returned";
+            //        return;
+            //    }
+
+            //    requestAnimationFrame(fadeOut);   //call this function recursively to animate the fadeout!!
+            //    ctx.globalAlpha = alpha;
+            //    doDrawOnCanvas(250);
+            //    alpha += -0.01;
+            //}
+
+            function playMultiplierSlider() {
+                //if at end of autoplay range, reset slider and stop.
+                if (multiple >= 100) {
+                    multiple = 0; // we need to set this to zero rather than one as it will be incremented within this method anyway.
                     Stop();
                 }
+
+                multiple += 1;
+
                 slider1.value = multiple;
-                drawResults();
                 output1.innerText = multiple;
+                drawResults();
+
+                if (multiple == 100) {  /*check again if we have reached the end of autoplay.*/
+                    Stop();
+                }
+            }
+
+            function resetControlsToStart() {
+                multiple = 1;
+                slider1.value = multiple;
+                output1.innerText = multiple;
+                output2.innerText = slider2.value;
+                output3.innerText = slider3.value;
+                var radius = output3.innerText;
+                drawCircle(centreX, centreY, radius); //draw an empty circle only.  //todo fade out circle drawing instead (or display 100 for a while)!!
+                //fadeOut();
             }
 
             function Start() {
-                //TODO:continue canvas animation from current multiple
                 intervalId = setInterval(playMultiplierSlider, 500); //call this method every 500 ms.
-
                 toggleBut.removeEventListener("click", Start);
                 toggleBut.addEventListener("click", Stop);
                 toggleBut.value = "Stop";
             }
 
             function Stop() {
-                multiple = 1; // reset slider;
+                if (multiple > 99) {                         //if end of range has been reached, reset slider etc.;
+                    resetControlsToStart(); 
+                }
                 clearInterval(intervalId);
                 toggleBut.removeEventListener("click", Stop);
                 toggleBut.addEventListener("click", Start);
