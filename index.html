@@ -401,7 +401,6 @@
 
         <script>
             //set DOM references for HTML elements
-            //var counter = 0;
             //var statusmsg = document.getElementById("msg");
             var ctx = document.getElementById("canvas").getContext("2d");
             //var alpha = 1.0;                                              //transparency variable for canvas
@@ -434,26 +433,18 @@
             var intervalId;
             toggleBut.addEventListener("click", Start);
 
-            slider1.oninput = function () {
-                multiple = Number(this.value);       // save this global variable for autoplay restart.
-                output1.innerText = this.value;
-                drawResults();
-            }
-
-            slider2.oninput = function () {
-                output2.innerText = this.value;
-                drawResults();
-            }
-
-            slider3.oninput = function () {
-                output3.innerText = this.value;
-                drawResults();
-            }
+            // event handlers for sliders.
+            slider1.oninput = function () { handleSliderUpdate(this, output1); }
+            slider2.oninput = function () { handleSliderUpdate(this, output2); }
+            slider3.oninput = function () { handleSliderUpdate(this, output3); }
+            slider1.onchange = function () { handleSliderUpdate(this, output1); }
+            slider2.onchange = function () { handleSliderUpdate(this, output2); }
+            slider3.onchange = function () { handleSliderUpdate(this, output3); }
 
             //draw circle with initial values
-            drawCircle(centreX, centreY, initialRadius);
+            drawHollowCircle(centreX, centreY, initialRadius);  // this is the entry point for our code. All other code is triggered by user event handlers.
 
-            function drawCircle(x0, y0, radius) {
+            function drawHollowCircle(x0, y0, radius) {
                 ctx.lineWidth = "1";
                 ctx.strokeStyle = "lightgrey";
 
@@ -467,6 +458,28 @@
             //reset slider and circle on page refresh
             function setOnRefresh() {
                 resetControlsToStart();
+            }
+
+            function resetControlsToStart() {
+                toggleBut.removeEventListener("click", Stop);
+                toggleBut.addEventListener("click", Start);
+                toggleBut.value = "Autoplay";
+                multiple = 1;
+                slider1.value = multiple;
+                output1.innerText = multiple;
+                output2.innerText = slider2.value;
+                output3.innerText = slider3.value;
+                var radius = output3.innerText;
+                drawHollowCircle(centreX, centreY, radius); //draw an empty circle only.  //todo fade out circle drawing instead (or display 100 for a while)!!
+                //fadeOut();
+            }
+
+            function handleSliderUpdate(slider, control) {
+                if (slider.id == "myRange1") {             // if multiplier is being changed
+                    multiple = Number(slider.value);       // save this global variable for autoplay restart.
+                }
+                control.innerText = slider.value;
+                drawResults();
             }
 
             function drawResults() {
@@ -494,17 +507,19 @@
                     createMatrix(multiplierVal, moduloVal);
                 }
 
-                //do drawing on canvas
-                doDrawOnCanvas(radiusVal);
+                if (mustCallCreateCoords || mustCallCreateMatrix) {
+                    //do drawing on canvas
+                    doDrawOnCanvas(radiusVal);
 
-                //store current slider values as previous values ready for next time.
-                prevRadius = radiusVal;
-                prevModulo = moduloVal;
-                prevMultiplier = multiplierVal;
+                    //store current slider values as previous values ready for next time.
+                    prevRadius = radiusVal;
+                    prevModulo = moduloVal;
+                    prevMultiplier = multiplierVal;
+                }
             }
 
             function doDrawOnCanvas(radius) {           //we can call this function to draw circle with current global array settings etc.
-                drawCircle(centreX, centreY, radius);
+                drawHollowCircle(centreX, centreY, radius);
                 drawPattern();
             }
 
@@ -568,14 +583,13 @@
             //}
 
             function playMultiplierSlider() {
-                //if at end of autoplay range, reset slider and stop.
+                //if at end of autoplay range, stop (will reset slider).
                 if (multiple >= 100) {
-                    multiple = 0; // we need to set this to zero rather than one as it will be incremented within this method anyway.
                     Stop();
+                    return;
                 }
 
                 multiple += 1;
-
                 slider1.value = multiple;
                 output1.innerText = multiple;
                 drawResults();
@@ -585,29 +599,21 @@
                 }
             }
 
-            function resetControlsToStart() {
-                multiple = 1;
-                slider1.value = multiple;
-                output1.innerText = multiple;
-                output2.innerText = slider2.value;
-                output3.innerText = slider3.value;
-                var radius = output3.innerText;
-                drawCircle(centreX, centreY, radius); //draw an empty circle only.  //todo fade out circle drawing instead (or display 100 for a while)!!
-                //fadeOut();
-            }
-
             function Start() {
-                intervalId = setInterval(playMultiplierSlider, 500); //call this method every 500 ms.
+                intervalId = setInterval(playMultiplierSlider, 750); //call this method every 750 ms.
                 toggleBut.removeEventListener("click", Start);
                 toggleBut.addEventListener("click", Stop);
                 toggleBut.value = "Stop";
             }
 
             function Stop() {
-                if (multiple > 99) {                         //if end of range has been reached, reset slider etc.;
-                    resetControlsToStart(); 
-                }
                 clearInterval(intervalId);
+
+                if (multiple > 99) {        //if end of range has been reached, reset slider etc.
+                    setTimeout(function () { resetControlsToStart(); }, 1000)
+                    return;
+                }
+
                 toggleBut.removeEventListener("click", Stop);
                 toggleBut.addEventListener("click", Start);
                 toggleBut.value = "Autoplay";
